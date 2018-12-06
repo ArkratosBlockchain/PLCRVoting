@@ -38,6 +38,8 @@ contract PLCRVoting {
         mapping(address => bool) didCommit;   /// indicates whether an address committed a vote for this poll
         mapping(address => bool) didReveal;   /// indicates whether an address revealed a vote for this poll
         mapping(address => uint) voteOptions; /// stores the voteOption of an address that revealed
+
+        mapping(address => bool) allowVote; // indicates whether an address has permission to vote
     }
 
     // ============
@@ -54,6 +56,19 @@ contract PLCRVoting {
     AttributeStore.Data store;
 
     ERC20 public token;
+
+    modifier canVote(uint pollId) {
+        require(pollMap[pollId].allowVote[msg.sender], "no permission to vote");
+        _;
+    }
+
+    function allowVote(uint pollId, address voter) public {
+        pollMap[pollId].allowVote[msg.sender] = true;
+    }
+
+    function disallowVote(uint pollId, address voter) public {
+        pollMap[pollId].allowVote[msg.sender] = false;
+    }
 
     /**
     @dev Initializer. Can only be called once.
@@ -128,7 +143,7 @@ contract PLCRVoting {
     @param _numTokens The number of tokens to be committed towards the target poll
     @param _prevPollID The ID of the poll that the user has voted the maximum number of tokens in which is still less than or equal to numTokens
     */
-    function commitVote(uint _pollID, bytes32 _secretHash, uint _numTokens, uint _prevPollID) public {
+    function commitVote(uint _pollID, bytes32 _secretHash, uint _numTokens, uint _prevPollID) public canVote(_pollID) {
         require(commitPeriodActive(_pollID));
 
         // if msg.sender doesn't have enough voting rights,
