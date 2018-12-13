@@ -39,7 +39,7 @@ contract PLCRVoting {
         mapping(address => bool) didReveal;   /// indicates whether an address revealed a vote for this poll
         mapping(address => uint) voteOptions; /// stores the voteOption of an address that revealed
 
-        mapping(address => bool) allowVote; // indicates whether an address has permission to vote
+        mapping(address => bool) allowVoter; // indicates whether an address has permission to vote
     }
 
     // ============
@@ -58,16 +58,22 @@ contract PLCRVoting {
     ERC20 public token;
 
     modifier canVote(uint pollId) {
-        require(pollMap[pollId].allowVote[msg.sender], "no permission to vote");
+        require(pollMap[pollId].allowVoter[msg.sender], "no permission to vote");
         _;
     }
 
-    function allowVote(uint pollId, address voter) public {
-        pollMap[pollId].allowVote[msg.sender] = true;
+    function allowVoter(uint pollId, address voter) public {
+        pollMap[pollId].allowVoter[voter] = true;
     }
 
-    function disallowVote(uint pollId, address voter) public {
-        pollMap[pollId].allowVote[msg.sender] = false;
+    function allowVoters(uint pollId, address[] voters) public {
+        for (uint i = 0; i < voters.length; i++) {
+            allowVoter(pollId, voters[i]);
+        }
+    }
+
+    function disallowVoter(uint pollId, address voter) public {
+        pollMap[pollId].allowVoter[msg.sender] = false;
     }
 
     /**
