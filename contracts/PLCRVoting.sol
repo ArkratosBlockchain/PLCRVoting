@@ -58,8 +58,12 @@ contract PLCRVoting {
     ERC20 public token;
 
     modifier canVote(uint pollId) {
-        require(pollMap[pollId].allowVoter[msg.sender], "no permission to vote");
+        require(allowedToVote(pollId, msg.sender), "no permission to vote");
         _;
+    }
+
+    function allowedToVote(uint pollId, address voter) public returns(bool vanVote) {
+        return pollMap[pollId].allowVoter[voter];
     }
 
     function allowVoter(uint pollId, address voter) public {
